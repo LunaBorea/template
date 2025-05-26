@@ -3,18 +3,29 @@ import { NextRequest } from "next/server";
 
 const db = new Database("./games.db")
 
-export async function GET(req:NextRequest) {
-    const {searchParams} = req.nextUrl
-    if (searchParams.has("publisher")){
-        const publisher = searchParams.get("publisher")
-        const game = db.prepare("SELECT * FROM games WHERE publisher = ?").all(publisher)
-        return Response.json(game)
-    }
-    if (searchParams.has("genre")){
-        const genre = searchParams.get("genre")
-        const game = db.prepare("SELECT * FROM games WHERE genre = ?").all(genre)
-        return Response.json(game)
-    }
-    const games = db.prepare("SELECT * FROM games;").all()
-    return Response.json(games)
+export async function GET(req: NextRequest) {
+  const { searchParams } = req.nextUrl
+  const genre = searchParams.get("genre")
+  const publisher = searchParams.get("publisher")
+
+  let query = "SELECT * FROM games"
+  const conditions: string[] = []
+  const values: any[] = []
+
+  if (genre) {
+    conditions.push("genre LIKE ?")
+    values.push(`%${genre}%`)
+  }
+
+  if (publisher) {
+    conditions.push("publisher LIKE ?")
+    values.push(`%${publisher}%`)
+  }
+
+  if (conditions.length > 0) {
+    query += " WHERE " + conditions.join(" AND ")
+  }
+
+  const games = db.prepare(query).all(...values)
+  return Response.json(games)
 }
