@@ -1,26 +1,31 @@
-'use client'
 import React from 'react'
-import { authClient } from '@/lib/auth-client'
+import Card from './components/Card'
 
-export default function Home() {
-  const {data: session} = authClient.useSession()
-  console.log('user', session?.user)
-  const handleSignIn = async () => {
-    const data = await authClient.signIn.social({provider: 'github'})
-    console.log(data)
-  }
+async function getData(){
+  const res = await fetch("https://jsonplaceholder.typicode.com/posts")
+  const data = await res.json()
+  return data
+}
+
+type Post = {
+  userId: number,
+  id: number,
+  title: string,
+  body: string
+}
+
+export default async function Home() {
+  const posts: Post[] = await getData()
+  const sortedPosts = posts.slice(0, 3)
   return (
     <div>
-      <h1>Hello</h1>
-      <h1>Hello</h1>
-      {session?.user && (
-        <div>
-          <h2>{session.user.name}</h2>
-          <p>{session.user.email}</p>
-          <img src={session.user.image || ''} alt="profile" />
+      <Card title='repetitionsövning 1' desc='hej hej'/>
+      {sortedPosts.map(post => (
+        <div key={post.id}>
+          <h1>{post.title}</h1>
+          <p>{post.body}</p>
         </div>
-      )}
-      <button onClick={handleSignIn}>Sign in with Github</button>
+      ))}
     </div>
-  );
+  )
 }
